@@ -9,15 +9,17 @@ if SERVER then
 	voteMinVotes = ulx.convar("votenoodle_minvotes", "3", nil, ULib.ACCESS_SUPERADMIN)
 end
 
-function ulx.noodle(caller, target, unnoodle)
-	if not IsValid(target) then return end
-
+function ulx.noodle(caller, target, time, unnoodle)
 	if unnoodle then
 		ramen.setPlayerNoodled(target, false)
 
 		ulx.fancyLogAdmin(caller, "#A unnoodled #T", target)
 	else
-		ramen.setPlayerNoodled(target, true)
+		if time >= 0 then
+			ramen.setPlayerNoodled(target, time)
+		else
+			ramen.setPlayerNoodled(target, true)
+		end
 
 		ulx.fancyLogAdmin(caller, "#A noodled #T", target)
 	end
@@ -25,10 +27,11 @@ end
 
 local noodle = ulx.command("ZS ULX Commands", "ulx noodle", ulx.noodle, "!noodle")
 noodle:addParam{type = ULib.cmds.PlayerArg}
+noodle:addParam{type = ULib.cmds.NumArg, default = -1, hint = "Timeout in minutes (0 = next map)", ULib.cmds.optional}
 noodle:addParam{type = ULib.cmds.BoolArg, invisible = true}
 noodle:defaultAccess(ULib.ACCESS_ADMIN)
 noodle:help("Prevents players from picking up props")
-noodle:setOpposite("ulx unnoodle", {nil, nil, true}, "!unnoodle")
+noodle:setOpposite("ulx unnoodle", {nil, nil, -1, true}, "!unnoodle")
 
 local function voteNoodleDone(t, caller, target, targetname, targetid)
 	local result
