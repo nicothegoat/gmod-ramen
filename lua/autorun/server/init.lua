@@ -2,7 +2,7 @@
 -- To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/4.0/.
 
 if ramen then
-	error("\"ramen\" table already exists!")
+	error("Global variable \"ramen\" already exists!")
 end
 
 local function serialize(tbl)
