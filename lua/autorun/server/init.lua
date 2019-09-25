@@ -5,6 +5,9 @@ if ramen then
 	error("Global variable \"ramen\" already exists!")
 end
 
+util.AddNetworkString("ramenMarkedAddRemove")
+util.AddNetworkString("ramenMarkedSendFull")
+
 local function serialize(tbl)
 	local resultConcat = {}
 
@@ -50,6 +53,9 @@ local function deserialize(text)
 end
 
 
+local noSendFull = {}
+
+local markedCount = 0
 local markedPlayers = {}
 local noodledPlayers
 
@@ -64,6 +70,9 @@ end
 local function setPlayerMarked(plr, marked)
 	marked = marked and true or nil
 
+	if markedPlayers[plr] ~= marked then
+		markedCount = markedCount + (marked and 1 or -1)
+	end
 	markedPlayers[plr] = marked
 
 	plr.NoObjectPickup = marked
@@ -73,7 +82,12 @@ local function setPlayerMarked(plr, marked)
 		plr:DoNoodleArmBones()
 	end
 
-	plr:SetNWBool("ramenNoodled", marked or false)
+	net.Start("ramenMarkedAddRemove")
+
+	net.WriteEntity(plr)
+	net.WriteBool(marked or false)
+
+	net.Broadcast()
 end
 
 local function setPlayerNoodled(plr, noodled)
@@ -87,7 +101,7 @@ local function setPlayerNoodled(plr, noodled)
 		if noodled > 0 then
 			timeout = noodled * 60 -- convert to seconds
 
-			-- when the timeout should expire
+			-- when it should expire
 			local timestamp = os.time() + timeout
 			noodledPlayers[steamID] = timestamp
 
@@ -109,17 +123,19 @@ end
 
 
 local function hookPlayerDisconnected(plr)
-	local steamID = plr:SteamID()
+	noSendFull[plr] = nil
 
-	if timer.Exists(steamID) then
-		timer.Remove(steamID)
-	end
+	local steamID = plr:SteamID()
+	if not noodledPlayers[steamID] then return end
+
+	setPlayerMarked(plr, false)
 end
 
 local function hookPlayerAuthed(plr)
 	local steamID = plr:SteamID()
+	if not noodledPlayers[steamID] then return end
 
-	if isnumber(noodledPlayers[steamID]) and noodledPlayers[steamID] > 0 then
+	if noodledPlayers[steamID] > 0 then
 		local curTime = os.time()
 		local timestamp = noodledPlayers[steamID]
 
@@ -130,8 +146,6 @@ local function hookPlayerAuthed(plr)
 			end
 
 			timer.Create("steamID", timestamp - curTime, 1, noodleTimeout)
-
-			setPlayerMarked(plr, true)
 		else
 			noodledPlayers[steamID] = nil
 		end
@@ -154,6 +168,24 @@ hook.Add("PlayerAuthed", "ramen", hookPlayerAuthed)
 hook.Add("PlayerSpawn", "ramen", hookPlayerSpawn)
 hook.Add("PlayerDeath", "ramen", hookPlayerDeath)
 hook.Add("ShutDown", "ramen", hookShutDown)
+
+
+local function netMarkedSendFull(_, plr)
+	-- markedPlayers can potentially get quite big
+	-- don't let players request it more than once
+	if noSendFull[plr] then return end
+	noSendFull[plr] = true 
+	net.Start("ramenMarkedSendFull")
+
+	net.WriteUInt(markedCount, 8)
+	for markedPlr in pairs(markedPlayers) do
+		net.WriteEntity(markedPlr)
+	end
+
+	net.Send(plr)
+end
+
+net.Receive("ramenMarkedSendFull", netMarkedSendFull)
 
 
 ramen = {

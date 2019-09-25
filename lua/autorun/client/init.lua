@@ -3,33 +3,77 @@
 
 local pairs = pairs
 local IsValid = IsValid
-local player_GetHumans = player.GetHumans
 
 local draw_SimpleTextOutlined = draw.SimpleTextOutlined
 
-local drawDistanceConvar = CreateClientConVar("cl_ramen_drawdistance", "256", true, false,
+local convarDrawDistance = CreateClientConVar("cl_ramen_drawdistance", "256", true, false,
 	"The distance at which the cade ban text should stop rendering.")
 
-local function HUDPaintHook()
-	local zOffset = 80
+local markedPlayers = {}
+
+local function hookHUDPaint()
+	local localPlayer = LocalPlayer()
+
+	if localPlayer:Team() ~= TEAM_HUMAN then return end
+
+	local offset = Vector(0, 0, 80)
+	local textColor = Color(255, 0, 0, 0)
+	local outlineColor = Color(0, 0, 0, 0)
 	local maxOpacity = 255
-	local maxDistance = drawDistanceConvar:GetInt()
+	local maxDistance = convarDrawDistance:GetInt()
 	local maxDistanceSquared = maxDistance * maxDistance
 
-	for _, plr in pairs(player_GetHumans()) do
-		if LocalPlayer():Team() == TEAM_HUMAN and IsValid(plr) and plr:GetNWBool("ramenNoodled") then
-			local distanceSquared = LocalPlayer():GetPos():DistToSqr(plr:GetPos())
+	local localPlayerPos = localPlayer:GetPos()
+
+	for plr in pairs(markedPlayers) do
+		if IsValid(plr) then
+			local distanceSquared = localPlayerPos:DistToSqr(plr:GetPos())
 
 			if distanceSquared < maxDistanceSquared then
-				local position = (plr:GetPos() + Vector(0, 0, zOffset)):ToScreen()
+				local position = (plr:GetPos() + offset):ToScreen()
 				local opacity = (1 - distanceSquared / maxDistanceSquared) * maxOpacity
 
+				textColor.a = opacity
+				outlineColor.a = opacity
+
 				draw_SimpleTextOutlined("BANNED FROM CADING", "DermaLarge",
-					position.x, position.y, Color(255, 0, 0, opacity),
-					TEXT_ALIGN_CENTER, TEXT_ALIGN_BOTTOM, 1, Color(0, 0, 0, opacity))
+					position.x, position.y, textColor,
+					TEXT_ALIGN_CENTER, TEXT_ALIGN_BOTTOM, 1, outlineColor)
 			end
+		else
+			markedPlayers[plr] = nil
 		end
 	end
 end
 
-hook.Add("HUDPaint", "ramen", HUDPaintHook)
+local function hookInitPostEntity()
+	net.Start("ramenMarkedSendFull")
+	net.SendToServer()
+end
+
+hook.Add("InitPostEntity", "ramen", hookInitPostEntity)
+hook.Add("HUDPaint", "ramen", hookHUDPaint)
+
+
+local function netMarkedAddRemove()
+	local plr = net.ReadEntity()
+	local state = net.ReadBool()
+
+	if IsValid(plr) then
+		markedPlayers[plr] = state or nil
+	end
+end
+
+local function netMarkedSendFull()
+	for plr in pairs (markedPlayers) do
+		markedPlayers[plr] = nil
+	end
+
+	local count = net.ReadUInt(8)
+	for i = 0, count do
+		markedPlayers[net.ReadEntity()] = true
+	end
+end
+
+net.Receive("ramenMarkedAddRemove", netMarkedAddRemove)
+net.Receive("ramenMarkedSendFull", netMarkedSendFull)
