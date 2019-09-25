@@ -2,12 +2,24 @@
 -- To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/4.0/.
 
 local pairs = pairs
+local Color = Color
+local Vector = Vector
 local IsValid = IsValid
-
+local LocalPlayer = LocalPlayer
+local string_ToColor = string.ToColor
+local draw_SimpleText = draw.SimpleText
+local draw_GetFontHeight = draw.GetFontHeight
 local draw_SimpleTextOutlined = draw.SimpleTextOutlined
 
-local convarDrawDistance = CreateClientConVar("cl_ramen_drawdistance", "256", true, false,
-	"The distance at which the cade ban text should stop rendering.")
+local convarDrawDistance = CreateClientConVar("cl_ramen_drawdistance", "256",
+	true, false, "Set to 0 to disable cade ban text rendering.")
+local convarZOffset = CreateClientConVar("cl_ramen_zoffset", "80")
+local convarText = CreateClientConVar("cl_ramen_text", "BANNED FROM CADING")
+local convarFont = CreateClientConVar("cl_ramen_font", "DermaLarge")
+local convarColor = CreateClientConVar("cl_ramen_color", "255 0 0 255")
+local convarOutlineColor = CreateClientConVar("cl_ramen_outline_color", "0 0 0 255",
+	true, false, "Set alpha to 0 to disable the outline.")
+
 
 local markedPlayers = {}
 
@@ -16,28 +28,54 @@ local function hookHUDPaint()
 
 	if localPlayer:Team() ~= TEAM_HUMAN then return end
 
-	local offset = Vector(0, 0, 80)
-	local textColor = Color(255, 0, 0, 0)
-	local outlineColor = Color(0, 0, 0, 0)
-	local maxOpacity = 255
 	local maxDistance = convarDrawDistance:GetInt()
 	local maxDistanceSquared = maxDistance * maxDistance
+
+	if maxDistance == 0 then return end
+
+	local offset = Vector(0, 0, convarZOffset:GetFloat())
+
+	local text = convarText:GetString()
+	local textFont = convarFont:GetString()
+
+	local localTextX = ScrW() / 2
+	local localTextY = ScrH() / 12 + draw_GetFontHeight(textFont)
+
+	local textColor = string_ToColor(convarColor:GetString()) or Color(255, 0, 0, 255)
+	local textAlpha = textColor.a
+	local outlineColor = string_ToColor(convarOutlineColor:GetString()) or Color(0, 0, 0, 255)
+	local outlineAlpha = outlineColor.a
+
+	local drawFunc
+
+	if outlineAlpha == 0 then
+		drawFunc = draw_SimpleText
+	else
+		drawFunc = draw_SimpleTextOutlined
+	end
+
+	local drawLocalPlayer = localPlayer.OverTheShoulder or localPlayer:ShouldDrawLocalPlayer()
 
 	local localPlayerPos = localPlayer:GetPos()
 
 	for plr in pairs(markedPlayers) do
-		if IsValid(plr) then
+		if plr == localPlayer and not drawLocalPlayer then
+			textColor.a = textAlpha
+			outlineColor.a = outlineAlpha
+
+			drawFunc(text, textFont, localTextX, localTextY, textColor,
+				TEXT_ALIGN_CENTER, TEXT_ALIGN_BOTTOM, 1, outlineColor)
+
+		elseif IsValid(plr) then
 			local distanceSquared = localPlayerPos:DistToSqr(plr:GetPos())
 
 			if distanceSquared < maxDistanceSquared then
 				local position = (plr:GetPos() + offset):ToScreen()
-				local opacity = (1 - distanceSquared / maxDistanceSquared) * maxOpacity
 
-				textColor.a = opacity
-				outlineColor.a = opacity
+				textColor.a = (1 - distanceSquared / maxDistanceSquared) * textAlpha
+				outlineColor.a = (1 - distanceSquared / maxDistanceSquared) * outlineAlpha
 
-				draw_SimpleTextOutlined("BANNED FROM CADING", "DermaLarge",
-					position.x, position.y, textColor,
+				drawFunc(text, textFont, position.x, position.y, textColor,
 					TEXT_ALIGN_CENTER, TEXT_ALIGN_BOTTOM, 1, outlineColor)
 			end
 		else

@@ -118,7 +118,7 @@ local function setPlayerNoodled(plr, noodled)
 		noodledPlayers[steamID] = noodled and -1 or nil
 	end
 
-	setPlayerMarked(plr, noodled)
+	setPlayerMarked(plr, noodled and plr:Team() == TEAM_HUMAN)
 end
 
 
@@ -156,6 +156,12 @@ local function hookPlayerSpawn(plr)
 	if not noodledPlayers[plr:SteamID()] then return end
 
 	setPlayerMarked(plr, plr:Team() == TEAM_HUMAN)
+end
+
+local function hookPlayerDeath(plr)
+	if not noodledPlayers[plr:SteamID()] then return end
+
+	setPlayerMarked(plr, false)
 end
 
 local function hookShutDown()
