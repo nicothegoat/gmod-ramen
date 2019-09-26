@@ -113,5 +113,10 @@ local function netMarkedSendFull()
 	end
 end
 
+local function netBannedAction()
+	surface.PlaySound("ambient/alarms/klaxon1.wav")
+end
+
 net.Receive("ramenMarkedAddRemove", netMarkedAddRemove)
 net.Receive("ramenMarkedSendFull", netMarkedSendFull)
+net.Receive("ramenBannedAction", netBannedAction)

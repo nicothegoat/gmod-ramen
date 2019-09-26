@@ -5,8 +5,15 @@ if ramen then
 	error("Global variable \"ramen\" already exists!")
 end
 
+local convarHammerOverride = CreateConVar("sv_ramen_hammer_override", "1", FCVAR_ARCHIVE,
+	"Prevent noodled players from placing or removing nails?")
+local convarHammerWeapons = CreateConVar("sv_ramen_hammer_weapons",
+	"weapon_zs_hammer,weapon_zs_electrohammer", FCVAR_ARCHIVE,
+	"Comma delimited list of weapons to apply hammer override to.")
+
 util.AddNetworkString("ramenMarkedAddRemove")
 util.AddNetworkString("ramenMarkedSendFull")
+util.AddNetworkString("ramenBannedAction")
 
 local function serialize(tbl)
 	local resultConcat = {}
@@ -67,6 +74,83 @@ else
 end
 
 
+local hammerWeaponNames = string.Split(convarHammerWeapons:GetString(), ",")
+local hammerWeapons = {}
+for _, wepName in pairs(hammerWeaponNames) do
+	hammerWeapons[wepName] = true
+end
+
+local function hookOwnerChanged(self)
+	local super = self.ramenSuper
+
+	self.SecondaryAttack = super.SecondaryAttack
+	self.OwnerChanged = super.OwnerChanged
+	self.Reload = super.Reload
+
+	self.ramenSuper = nil
+
+	if self.OwnerChanged then
+		self:OwnerChanged()
+	end
+end
+
+local function setHammerBlocked(wep, blocked)
+	local super = wep.ramenSuper
+
+	if blocked then
+		if super then return end
+
+		super = {}
+
+		local function bannedAction(self)
+			if CurTime() < self:GetNextSecondaryFire() then return end
+
+			local plr = self:GetOwner()
+			if plr:GetBarricadeGhosting() then return end
+
+			self:SetNextSecondaryFire(CurTime() + 1)
+
+			plr:PrintMessage(HUD_PRINTCENTER, "You are banned from cading!")
+
+			net.Start("ramenBannedAction")
+			net.Send(plr)
+		end
+
+
+		super.SecondaryAttack = wep.SecondaryAttack
+		super.OwnerChanged = wep.OwnerChanged
+		super.Reload = wep.Reload
+
+		wep.SecondaryAttack = bannedAction
+		wep.Reload = bannedAction
+
+		wep.OwnerChanged = hookOwnerChanged
+
+		wep.ramenSuper = super
+	else
+		if not super then return end
+
+		wep.SecondaryAttack = super.SecondaryAttack
+		wep.OwnerChanged = super.OwnerChanged
+		wep.Reload = super.Reload
+
+		wep.ramenSuper = nil
+	end
+end
+
+local function hookWeaponEquip(wep, plr)
+	if not convarHammerOverride:GetBool() then return end
+
+	if markedPlayers[plr] and hammerWeapons[wep:GetClass()] then
+		timer.Simple(0, function()
+			setHammerBlocked(wep, true)
+		end)
+	end
+end
+
+hook.Add("WeaponEquip", "ramen", hookWeaponEquip)
+
+
 local function setPlayerMarked(plr, marked)
 	marked = marked and true or nil
 
@@ -80,6 +164,14 @@ local function setPlayerMarked(plr, marked)
 	-- This is missing sometimes
 	if plr.DoNoodleArmBones then
 		plr:DoNoodleArmBones()
+	end
+
+	if convarHammerOverride:GetBool() or not marked then
+		for wepName in pairs(hammerWeapons) do
+			local wep = plr:GetWeapon(wepName)
+
+			setHammerBlocked(wep, marked)
+		end
 	end
 
 	net.Start("ramenMarkedAddRemove")
@@ -180,7 +272,7 @@ local function netMarkedSendFull(_, plr)
 	-- markedPlayers can potentially get quite big
 	-- don't let players request it more than once
 	if noSendFull[plr] then return end
-	noSendFull[plr] = true 
+	noSendFull[plr] = true
 	net.Start("ramenMarkedSendFull")
 
 	net.WriteUInt(markedCount, 8)
