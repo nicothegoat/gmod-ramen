@@ -1,6 +1,12 @@
-local voteMinRatio = ulx.convar("votenoodleminratio", "0.5", nil, ULib.ACCESS_SUPERADMIN)
-local voteMinVotes = ulx.convar("votenoodleminvotes", "3", nil, ULib.ACCESS_SUPERADMIN)
-local voteTimeout  = ulx.convar("votenoodletimeout", "-1", nil, ULib.ACCESS_SUPERADMIN)
+local voteMinRatio
+local voteMinVotes
+local voteTimeout
+
+if SERVER then
+	local voteMinRatio = ulx.convar("votenoodleminratio", "0.5", nil, ULib.ACCESS_SUPERADMIN)
+	local voteMinVotes = ulx.convar("votenoodleminvotes", "3", nil, ULib.ACCESS_SUPERADMIN)
+	local voteTimeout  = ulx.convar("votenoodletimeout", "-1", nil, ULib.ACCESS_SUPERADMIN)
+end
 
 function ulx.noodle(caller, target, time, unnoodle)
 	if unnoodle then
