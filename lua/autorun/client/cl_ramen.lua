@@ -19,7 +19,6 @@ local convarOutlineColor = CreateClientConVar("cl_ramen_outline_color", "0 0 0 2
 
 
 local markedPlayers = {}
-local fontHeights = {}
 
 local function hookHUDPaint()
 	local localPlayer = LocalPlayer()
@@ -36,12 +35,8 @@ local function hookHUDPaint()
 	local text = convarText:GetString()
 	local textFont = convarFont:GetString()
 
-	if not fontHeights[textFont] then
-		fontHeights[textFont] = draw_GetFontHeight(textFont)
-	end
-
 	local localTextX = ScrW() / 2
-	local localTextY = ScrH() / 12 + fontHeights[textFont]
+	local localTextY = ScrH() / 12 + draw_GetFontHeight(textFont)
 
 	local textColor = string_ToColor(convarColor:GetString()) or Color(255, 0, 0, 255)
 	local textAlpha = textColor.a
