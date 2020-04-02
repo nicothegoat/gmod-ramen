@@ -234,7 +234,7 @@ local function hookPlayerAuthed(plr)
 				setPlayerMarked(plr, nil)
 			end
 
-			timer.Create("steamID", timestamp - curTime, 1, noodleTimeout)
+			timer.Create(steamID, timestamp - curTime, 1, noodleTimeout)
 		else
 			noodledPlayers[steamID] = nil
 		end
