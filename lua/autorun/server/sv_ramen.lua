@@ -2,11 +2,11 @@ if ramen then
 	error("Global variable \"ramen\" already exists!")
 end
 
-local convarHammerOverride = CreateConVar("sv_ramen_hammer_override", "1", FCVAR_ARCHIVE,
+local convarHammerBan = CreateConVar("sv_ramen_hammer_ban", "1", FCVAR_ARCHIVE,
 	"Prevent noodled players from placing or removing nails?")
 local convarHammerWeapons = CreateConVar("sv_ramen_hammer_weapons",
 	"weapon_zs_hammer,weapon_zs_electrohammer", FCVAR_ARCHIVE,
-	"Comma delimited list of weapons to apply hammer override to.")
+	"Comma delimited list of weapons to apply hammer ban to.")
 
 util.AddNetworkString("ramenMarkedAddRemove")
 util.AddNetworkString("ramenMarkedSendFull")
@@ -136,7 +136,7 @@ local function setHammerBlocked(wep, blocked)
 end
 
 local function hookWeaponEquip(wep, plr)
-	if not convarHammerOverride:GetBool() then return end
+	if not convarHammerBan:GetBool() then return end
 
 	if markedPlayers[plr] and hammerWeapons[wep:GetClass()] then
 		timer.Simple(0, function()
@@ -163,7 +163,7 @@ local function setPlayerMarked(plr, marked)
 		plr:DoNoodleArmBones()
 	end
 
-	if convarHammerOverride:GetBool() or not marked then
+	if convarHammerBan:GetBool() or not marked then
 		for wepName in pairs(hammerWeapons) do
 			local wep = plr:GetWeapon(wepName)
 
