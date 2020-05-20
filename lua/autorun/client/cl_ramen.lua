@@ -10,7 +10,6 @@ local draw_SimpleTextOutlined = draw.SimpleTextOutlined
 
 local convarDrawDistance = CreateClientConVar("cl_ramen_drawdistance", "256",
 	true, false, "Set to 0 to disable cade ban text rendering.")
-local convarZOffset = CreateClientConVar("cl_ramen_zoffset", "80")
 local convarText = CreateClientConVar("cl_ramen_text", "BANNED FROM CADING")
 local convarFont = CreateClientConVar("cl_ramen_font", "DermaLarge")
 local convarColor = CreateClientConVar("cl_ramen_color", "255 0 0 255")
@@ -30,7 +29,7 @@ local function hookHUDPaint()
 
 	if maxDistance == 0 then return end
 
-	local offset = Vector(0, 0, convarZOffset:GetFloat())
+	local offset = convarZOffset:GetFloat()
 
 	local text = convarText:GetString()
 	local textFont = convarFont:GetString()
@@ -67,7 +66,10 @@ local function hookHUDPaint()
 			local distanceSquared = localPlayerPos:DistToSqr(plr:GetPos())
 
 			if distanceSquared < maxDistanceSquared then
-				local position = (plr:GetPos() + offset):ToScreen()
+				local worldPosition = plr:GetPos()
+				worldPosition.z = worldPosition.z + offset
+
+				local position = worldPosition:ToScreen()
 
 				textColor.a = (1 - distanceSquared / maxDistanceSquared) * textAlpha
 				outlineColor.a = (1 - distanceSquared / maxDistanceSquared) * outlineAlpha
