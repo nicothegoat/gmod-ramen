@@ -43,25 +43,27 @@ local function hookHUDPaint()
 	local drawLocalPlayer = localPlayer.OverTheShoulder or localPlayer:ShouldDrawLocalPlayer()
 
 	for plr in pairs(markedPlayers) do
-		if plr == localPlayer and not drawLocalPlayer then
-			textColor.a = textAlpha
+		if IsValid(plr) then
+			if plr == localPlayer and not drawLocalPlayer then
+				textColor.a = textAlpha
 
-			draw_SimpleTextOutlined(text, textFont, localTextX, localTextY, textColor,
-				TEXT_ALIGN_CENTER, TEXT_ALIGN_BOTTOM, 1, outlineColor)
+				draw_SimpleTextOutlined(text, textFont, localTextX, localTextY, textColor,
+					TEXT_ALIGN_CENTER, TEXT_ALIGN_BOTTOM, 1, outlineColor)
 
-		elseif IsValid(plr) then
-			local distanceSquared = localPlayer:GetPos():DistToSqr(plr:GetPos())
+			else
+				local distanceSquared = localPlayer:GetPos():DistToSqr(plr:GetPos())
 
-			if distanceSquared < drawDistanceSquared then
-				local worldPosition = plr:GetPos()
-				worldPosition.z = worldPosition.z + offset
+				if distanceSquared < drawDistanceSquared then
+					local worldPosition = plr:GetPos()
+					worldPosition.z = worldPosition.z + offset
 
-				local position = worldPosition:ToScreen()
+					local position = worldPosition:ToScreen()
 
-				textColor.a = (1 - distanceSquared / drawDistanceSquared) * textAlpha
+					textColor.a = (1 - distanceSquared / drawDistanceSquared) * textAlpha
 
-				draw_SimpleText(text, textFont, position.x, position.y, textColor,
-					TEXT_ALIGN_CENTER, TEXT_ALIGN_BOTTOM)
+					draw_SimpleText(text, textFont, position.x, position.y, textColor,
+						TEXT_ALIGN_CENTER, TEXT_ALIGN_BOTTOM)
+				end
 			end
 		else
 			markedPlayers[plr] = nil
