@@ -12,6 +12,7 @@ local convarDrawDistance = CreateClientConVar("cl_ramen_drawdistance", "256",
 	true, false, "Set to 0 to disable cade ban text rendering.")
 
 local markedPlayers = {}
+local textColor = Color(255, 0, 0, 255)
 
 local function hookHUDPaint()
 	local localPlayer = LocalPlayer()
@@ -31,7 +32,6 @@ local function hookHUDPaint()
 	local localTextX = ScrW() / 2
 	local localTextY = ScrH() / 12 + draw_GetFontHeight(textFont)
 
-	local textColor = Color(255, 0, 0, 255)
 	local textAlpha = 255
 
 	local drawLocalPlayer = localPlayer.OverTheShoulder or localPlayer:ShouldDrawLocalPlayer()
