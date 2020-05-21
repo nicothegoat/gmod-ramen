@@ -10,12 +10,6 @@ local draw_SimpleTextOutlined = draw.SimpleTextOutlined
 
 local convarDrawDistance = CreateClientConVar("cl_ramen_drawdistance", "256",
 	true, false, "Set to 0 to disable cade ban text rendering.")
-local convarText = CreateClientConVar("cl_ramen_text", "BANNED FROM CADING")
-local convarFont = CreateClientConVar("cl_ramen_font", "DermaLarge")
-local convarColor = CreateClientConVar("cl_ramen_color", "255 0 0 255")
-local convarOutlineColor = CreateClientConVar("cl_ramen_outline_color", "0 0 0 255",
-	true, false, "Set alpha to 0 to disable the outline.")
-
 
 local markedPlayers = {}
 
@@ -29,26 +23,16 @@ local function hookHUDPaint()
 
 	if maxDistance == 0 then return end
 
-	local offset = convarZOffset:GetFloat()
+	local offset = 72
 
-	local text = convarText:GetString()
-	local textFont = convarFont:GetString()
+	local text = "BANNED FROM CADING"
+	local textFont = "DermaLarge"
 
 	local localTextX = ScrW() / 2
 	local localTextY = ScrH() / 12 + draw_GetFontHeight(textFont)
 
-	local textColor = string_ToColor(convarColor:GetString()) or Color(255, 0, 0, 255)
-	local textAlpha = textColor.a
-	local outlineColor = string_ToColor(convarOutlineColor:GetString()) or Color(0, 0, 0, 255)
-	local outlineAlpha = outlineColor.a
-
-	local drawFunc
-
-	if outlineAlpha == 0 then
-		drawFunc = draw_SimpleText
-	else
-		drawFunc = draw_SimpleTextOutlined
-	end
+	local textColor = Color(255, 0, 0, 255)
+	local textAlpha = 255
 
 	local drawLocalPlayer = localPlayer.OverTheShoulder or localPlayer:ShouldDrawLocalPlayer()
 
@@ -57,10 +41,9 @@ local function hookHUDPaint()
 	for plr in pairs(markedPlayers) do
 		if plr == localPlayer and not drawLocalPlayer then
 			textColor.a = textAlpha
-			outlineColor.a = outlineAlpha
 
-			drawFunc(text, textFont, localTextX, localTextY, textColor,
-				TEXT_ALIGN_CENTER, TEXT_ALIGN_BOTTOM, 1, outlineColor)
+			draw_SimpleText(text, textFont, localTextX, localTextY, textColor,
+				TEXT_ALIGN_CENTER, TEXT_ALIGN_BOTTOM)
 
 		elseif IsValid(plr) then
 			local distanceSquared = localPlayerPos:DistToSqr(plr:GetPos())
@@ -72,10 +55,9 @@ local function hookHUDPaint()
 				local position = worldPosition:ToScreen()
 
 				textColor.a = (1 - distanceSquared / maxDistanceSquared) * textAlpha
-				outlineColor.a = (1 - distanceSquared / maxDistanceSquared) * outlineAlpha
 
-				drawFunc(text, textFont, position.x, position.y, textColor,
-					TEXT_ALIGN_CENTER, TEXT_ALIGN_BOTTOM, 1, outlineColor)
+				draw_SimpleText(text, textFont, position.x, position.y, textColor,
+					TEXT_ALIGN_CENTER, TEXT_ALIGN_BOTTOM)
 			end
 		else
 			markedPlayers[plr] = nil
