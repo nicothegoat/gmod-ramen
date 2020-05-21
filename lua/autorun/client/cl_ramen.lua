@@ -1,12 +1,9 @@
 local pairs = pairs
 local Color = Color
-local Vector = Vector
 local IsValid = IsValid
 local LocalPlayer = LocalPlayer
-local string_ToColor = string.ToColor
 local draw_SimpleText = draw.SimpleText
 local draw_GetFontHeight = draw.GetFontHeight
-local draw_SimpleTextOutlined = draw.SimpleTextOutlined
 
 
 local convarDrawDistance = CreateClientConVar("cl_ramen_drawdistance", "256",
