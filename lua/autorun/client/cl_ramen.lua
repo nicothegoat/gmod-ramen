@@ -36,8 +36,6 @@ local function hookHUDPaint()
 
 	local drawLocalPlayer = localPlayer.OverTheShoulder or localPlayer:ShouldDrawLocalPlayer()
 
-	local localPlayerPos = localPlayer:GetPos()
-
 	for plr in pairs(markedPlayers) do
 		if plr == localPlayer and not drawLocalPlayer then
 			textColor.a = textAlpha
@@ -46,7 +44,7 @@ local function hookHUDPaint()
 				TEXT_ALIGN_CENTER, TEXT_ALIGN_BOTTOM)
 
 		elseif IsValid(plr) then
-			local distanceSquared = localPlayerPos:DistToSqr(plr:GetPos())
+			local distanceSquared = localPlayer:GetPos():DistToSqr(plr:GetPos())
 
 			if distanceSquared < maxDistanceSquared then
 				local worldPosition = plr:GetPos()
