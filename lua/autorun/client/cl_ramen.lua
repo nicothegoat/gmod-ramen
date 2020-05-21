@@ -4,6 +4,7 @@ local IsValid = IsValid
 local LocalPlayer = LocalPlayer
 local draw_SimpleText = draw.SimpleText
 local draw_GetFontHeight = draw.GetFontHeight
+local draw_SimpleTextOutlined = draw.SimpleTextOutlined
 
 
 local convarDrawDistance = CreateClientConVar("cl_ramen_drawdistance", "256",
@@ -21,6 +22,7 @@ cvars.AddChangeCallback("cl_ramen_drawdistance", updateDrawDistance)
 
 local markedPlayers = {}
 local textColor = Color(255, 0, 0, 255)
+local outlineColor = Color(0, 0, 0, 255)
 
 local function hookHUDPaint()
 	if drawDistanceSquared == 0 then return end
@@ -44,8 +46,8 @@ local function hookHUDPaint()
 		if plr == localPlayer and not drawLocalPlayer then
 			textColor.a = textAlpha
 
-			draw_SimpleText(text, textFont, localTextX, localTextY, textColor,
-				TEXT_ALIGN_CENTER, TEXT_ALIGN_BOTTOM)
+			draw_SimpleTextOutlined(text, textFont, localTextX, localTextY, textColor,
+				TEXT_ALIGN_CENTER, TEXT_ALIGN_BOTTOM, 1, outlineColor)
 
 		elseif IsValid(plr) then
 			local distanceSquared = localPlayer:GetPos():DistToSqr(plr:GetPos())
