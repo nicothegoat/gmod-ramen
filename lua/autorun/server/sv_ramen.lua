@@ -182,8 +182,10 @@ end
 local function setPlayerNoodled(plr, noodled)
 	local steamID = plr:SteamID()
 
-	if timer.Exists(steamID) then
-		timer.Remove(steamID)
+	local timerName = "ramenTimeout" .. steamID
+
+	if timer.Exists(timerName) then
+		timer.Remove(timerName)
 	end
 
 	if isnumber(noodled) and noodled >= 0 then
@@ -199,7 +201,7 @@ local function setPlayerNoodled(plr, noodled)
 				setPlayerMarked(plr, nil)
 			end
 
-			timer.Create(steamID, timeout, 1, noodleTimeout)
+			timer.Create(timerName, timeout, 1, noodleTimeout)
 		else
 			noodledPlayers[steamID] = 0
 		end
@@ -234,7 +236,7 @@ local function hookPlayerAuthed(plr)
 				setPlayerMarked(plr, nil)
 			end
 
-			timer.Create(steamID, timestamp - curTime, 1, noodleTimeout)
+			timer.Create("ramenTimeout" .. steamID, timestamp - curTime, 1, noodleTimeout)
 		else
 			noodledPlayers[steamID] = nil
 		end
