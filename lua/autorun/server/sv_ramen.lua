@@ -63,11 +63,13 @@ local markedCount = 0
 local markedPlayers = {}
 local noodledPlayers
 
-local serialized = file.Read("ramen_noodled_players.txt")
-if serialized then
-	noodledPlayers = deserialize(serialized)
-else
-	noodledPlayers = {}
+do
+	local serialized = file.Read("ramen_noodled_players.txt")
+	if serialized then
+		noodledPlayers = deserialize(serialized)
+	else
+		noodledPlayers = {}
+	end
 end
 
 
