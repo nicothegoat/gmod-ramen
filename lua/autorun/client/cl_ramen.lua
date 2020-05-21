@@ -19,6 +19,14 @@ end
 
 cvars.AddChangeCallback("cl_ramen_drawdistance", updateDrawDistance)
 
+local function requestResend()
+	net.Start("ramenMarkedSendFull")
+	net.SendToServer()
+end
+
+concommand.Add("cl_ramen_resend", requestResend, nil,
+	"Requests a full resend of the marked players table.")
+
 
 local markedPlayers = {}
 local textColor = Color(255, 0, 0, 255)

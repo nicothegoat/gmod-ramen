@@ -266,10 +266,11 @@ hook.Add("ShutDown", "ramen", hookShutDown)
 
 
 local function netMarkedSendFull(_, plr)
-	-- markedPlayers can potentially get quite big
-	-- don't let players request it more than once
 	if noSendFull[plr] then return end
 	noSendFull[plr] = true
+
+	timer.Simple(1, function() noSendFull[plr] = nil end)
+
 	net.Start("ramenMarkedSendFull")
 
 	net.WriteUInt(markedCount, 8)
