@@ -109,6 +109,7 @@ local function netMarkedSendFull()
 end
 
 local function netBannedAction()
+	LocalPlayer():PrintMessage(HUD_PRINTCENTER, "You are banned from cading!")
 	surface.PlaySound("ambient/alarms/klaxon1.wav")
 end
 
