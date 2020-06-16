@@ -109,6 +109,8 @@ local function setHammerBlocked(wep, blocked)
 
 			self:SetNextSecondaryFire(CurTime() + 1)
 
+			plr:PrintMessage(HUD_PRINTCENTER, "You are banned from cading!")
+
 			net.Start("ramenBannedAction")
 			net.Send(plr)
 		end
