@@ -4,9 +4,14 @@ end
 
 local convarHammerBan = CreateConVar("sv_ramen_hammer_ban", "1", FCVAR_ARCHIVE,
 	"Prevent noodled players from placing or removing nails?")
+
 local convarHammerWeapons = CreateConVar("sv_ramen_hammer_weapons",
 	"weapon_zs_hammer,weapon_zs_electrohammer", FCVAR_ARCHIVE,
 	"Comma delimited list of weapons to apply hammer ban to.")
+
+local convarNoNailRemovalPenaltyIfNoodled = CreateConVar("sv_ramen_allow_remove_noodled_nails", "1", FCVAR_ARCHIVE,
+	"Should players be penalized for removing nails placed by a noodled player?\n" ..
+	"Note: this doesn't give the removed nail to the player.")
 
 util.AddNetworkString("ramenMarkedAddRemove")
 util.AddNetworkString("ramenMarkedSendFull")
@@ -215,6 +220,12 @@ local function setPlayerNoodled(plr, noodled)
 end
 
 
+local function hookPlayerShouldTakeNailRemovalPenalty(plr, nail, nailOwner, prop)
+	if markedPlayers[nailOwner] and convarNoNailRemovalPenaltyIfOwnerNoodled:GetBool() then
+		return false
+	end
+end
+
 local function hookPlayerDisconnected(plr)
 	noSendFull[plr] = nil
 
@@ -262,6 +273,7 @@ local function hookShutDown()
 	file.Write("ramen_noodled_players.txt", serialized)
 end
 
+hook.Add("PlayerShouldTakeNailRemovalPenalty", "ramen", hookPlayerShouldTakeNailRemovalPenalty)
 hook.Add("PlayerDisconnected", "ramen", hookPlayerDisconnected)
 hook.Add("PlayerAuthed", "ramen", hookPlayerAuthed)
 hook.Add("PlayerSpawn", "ramen", hookPlayerSpawn)
