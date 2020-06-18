@@ -11,7 +11,8 @@ local convarHammerWeapons = CreateConVar("sv_ramen_hammer_weapons",
 
 local convarNoNailRemovalPenaltyIfNoodled = CreateConVar("sv_ramen_allow_remove_noodled_nails", "1", FCVAR_ARCHIVE,
 	"Should players be penalized for removing nails placed by a noodled player?\n" ..
-	"Note: this doesn't give the removed nail to the player.")
+	"This doesn't give the removed nail to the player.\n" ..
+	"Note: this option depends on a hook that doesn't exist on older versions of ZS. This option won't do anything if that hook doesn't exist.")
 
 util.AddNetworkString("ramenMarkedAddRemove")
 util.AddNetworkString("ramenMarkedSendFull")
