@@ -103,7 +103,7 @@ local function netMarkedSendFull()
 	end
 
 	local count = net.ReadUInt(8)
-	for i = 0, count do
+	for i = 1, count do
 		markedPlayers[net.ReadEntity()] = true
 	end
 end
