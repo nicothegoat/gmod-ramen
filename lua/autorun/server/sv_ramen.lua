@@ -222,7 +222,7 @@ end
 
 
 local function hookPlayerShouldTakeNailRemovalPenalty(plr, nail, nailOwner, prop)
-	if markedPlayers[nailOwner] and convarNoNailRemovalPenaltyIfOwnerNoodled:GetBool() then
+	if markedPlayers[nailOwner] and convarNoNailRemovalPenaltyIfNoodled:GetBool() then
 		return false
 	end
 end
