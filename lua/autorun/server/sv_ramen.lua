@@ -99,6 +99,20 @@ local function hookOwnerChanged(self)
 	end
 end
 
+local function bannedAction(self)
+	if CurTime() < self:GetNextSecondaryFire() then return end
+
+	local plr = self:GetOwner()
+	if plr:GetBarricadeGhosting() then return end
+
+	self:SetNextSecondaryFire(CurTime() + 1)
+
+	plr:PrintMessage(HUD_PRINTCENTER, "You are banned from cading!")
+
+	net.Start("ramenBannedAction")
+	net.Send(plr)
+end
+
 local function setHammerBlocked(wep, blocked)
 	local super = wep.ramenSuper
 
@@ -106,20 +120,6 @@ local function setHammerBlocked(wep, blocked)
 		if super then return end
 
 		super = {}
-
-		local function bannedAction(self)
-			if CurTime() < self:GetNextSecondaryFire() then return end
-
-			local plr = self:GetOwner()
-			if plr:GetBarricadeGhosting() then return end
-
-			self:SetNextSecondaryFire(CurTime() + 1)
-
-			plr:PrintMessage(HUD_PRINTCENTER, "You are banned from cading!")
-
-			net.Start("ramenBannedAction")
-			net.Send(plr)
-		end
 
 
 		super.SecondaryAttack = wep.SecondaryAttack
