@@ -4,8 +4,8 @@
 	"tags":        ["fun", "roleplay"],
 	"description": "ULX module for preventing players from picking up props in the Zombie Survival gamemode. Requires ULX.",
 	"ignore": [
-		"session.vim",
 		"UNLICENSE",
+		"README.md",
 		".git*"
 	]
 }
