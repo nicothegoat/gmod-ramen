@@ -127,7 +127,7 @@ local function setHammerBlocked(wep, blocked)
 
 		wep.OwnerChanged = hookOwnerChanged
 
-		hammerOverrides[wep] = wep
+		hammerOverrides[wep] = super
 	else
 		if not super then return end
 
