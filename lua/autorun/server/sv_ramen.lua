@@ -1,7 +1,3 @@
-if ramen then
-	error("Global variable \"ramen\" already exists!")
-end
-
 local convarHammerBan = CreateConVar("sv_ramen_hammer_ban", "1", FCVAR_ARCHIVE,
 	"Prevent noodled players from placing or removing nails?")
 
