@@ -166,9 +166,28 @@ local function setPlayerMarked(plr, marked)
 
 	plr.NoObjectPickup = marked
 
-	-- This is missing sometimes
-	if plr.DoNoodleArmBones then
+	-- This is sometimes missing on initial spawn
+	if not plr.DoNoodleArmBones then
+		-- Try to run it on the next tick
+		timer.Simple(0,
+			function()
+				if plr.DoNoodleArmBones then
+					plr:DoNoodleArmBones()
+				end
+
+				-- This needs to run after DoNoodleArmBones
+				-- if the player is being un-noodled
+				if plr.DoMuscularBones and not marked then
+					plr:DoMuscularBones()
+				end
+			end
+		)
+	else
 		plr:DoNoodleArmBones()
+
+		if plr.DoMuscularBones and not marked then
+			plr:DoMuscularBones()
+		end
 	end
 
 	if convarHammerBan:GetBool() or not marked then
