@@ -6,7 +6,7 @@ local convarHammerWeapons = CreateConVar("sv_ramen_hammer_weapons",
 	"Comma delimited list of weapons to apply hammer ban to.")
 
 local convarNoNailRemovalPenaltyIfNoodled = CreateConVar("sv_ramen_allow_remove_noodled_nails", "1", FCVAR_ARCHIVE,
-	"Should players be penalized for removing nails placed by a noodled player?\n" ..
+	"Should players not be penalized for removing nails placed by a noodled player?\n" ..
 	"This doesn't give the removed nail to the player.\n" ..
 	"Note: this option depends on a hook that doesn't exist on older versions of ZS. This option won't do anything if that hook doesn't exist.")
 
