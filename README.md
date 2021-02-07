@@ -9,7 +9,7 @@ All commands are located under "ZS ULX Commands" in the ULX menu.
 - `noodle <PLAYER> [<TIME>]`  
 	Bans the player from picking up props (and placing/removing nails, if that is enabled).  
 	`TIME` (optional) specifies when the ban should expire -
-	if set to 0, the ban will expire once the map is changed,
+	if set to 0, it will expire once the map is changed,
 	otherwise it will expire after the specified amount of minutes.
 
 - `unnoodle <PLAYER>`  
