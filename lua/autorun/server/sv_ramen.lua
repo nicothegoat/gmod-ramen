@@ -85,14 +85,15 @@ for _, wepName in pairs(hammerWeaponNames) do
 	hammerWeapons[wepName] = true
 end
 
+local hammerOverrides = {}
 local function hookOwnerChanged(self)
-	local super = self.ramenSuper
+	local super = hammerOverrides[self]
 
 	self.SecondaryAttack = super.SecondaryAttack
 	self.OwnerChanged = super.OwnerChanged
 	self.Reload = super.Reload
 
-	self.ramenSuper = nil
+	hammerOverrides[self] = nil
 
 	if self.OwnerChanged then
 		self:OwnerChanged()
@@ -114,13 +115,12 @@ local function bannedAction(self)
 end
 
 local function setHammerBlocked(wep, blocked)
-	local super = wep.ramenSuper
+	local super = hammerOverrides[wep]
 
 	if blocked then
 		if super then return end
 
 		super = {}
-
 
 		super.SecondaryAttack = wep.SecondaryAttack
 		super.OwnerChanged = wep.OwnerChanged
@@ -131,7 +131,7 @@ local function setHammerBlocked(wep, blocked)
 
 		wep.OwnerChanged = hookOwnerChanged
 
-		wep.ramenSuper = super
+		hammerOverrides[wep] = wep
 	else
 		if not super then return end
 
@@ -139,7 +139,7 @@ local function setHammerBlocked(wep, blocked)
 		wep.OwnerChanged = super.OwnerChanged
 		wep.Reload = super.Reload
 
-		wep.ramenSuper = nil
+		hammerOverrides[wep] = nil
 	end
 end
 
