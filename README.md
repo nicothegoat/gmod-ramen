@@ -26,9 +26,6 @@ All commands are located under "ZS ULX Commands" in the ULX menu.
 - `sv_ramen_hammer_override <BOOL>`, default `1`  
 	Prevent players from placing/removing nails?
 
-- `sv_ramen_hammer_weapons <WEAPONS>`, default `weapon_zs_hammer,weapon_zs_electrohammer`  
-	Comma-delimited list of weapons to apply hammer override to.
-
 - `sv_ramen_allow_remove_noodled_nails <BOOL>`, default `1`  
 	Should players not be penalized for removing nails placed by a noodled player?  
 	This doesn't give the removed nail to the player.  

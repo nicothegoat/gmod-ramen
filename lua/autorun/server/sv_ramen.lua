@@ -1,10 +1,6 @@
 local convarHammerBan = CreateConVar("sv_ramen_hammer_ban", "1", FCVAR_ARCHIVE,
 	"Prevent noodled players from placing or removing nails?")
 
-local convarHammerWeapons = CreateConVar("sv_ramen_hammer_weapons",
-	"weapon_zs_hammer,weapon_zs_electrohammer", FCVAR_ARCHIVE,
-	"Comma delimited list of weapons to apply hammer ban to.")
-
 local convarNoNailRemovalPenaltyIfNoodled = CreateConVar("sv_ramen_allow_remove_noodled_nails", "1", FCVAR_ARCHIVE,
 	"Should players not be penalized for removing nails placed by a noodled player?\n" ..
 	"This doesn't give the removed nail to the player.\n" ..
@@ -74,80 +70,6 @@ do
 end
 
 
-local hammerWeaponNames = string.Split(convarHammerWeapons:GetString(), ",")
-local hammerWeapons = {}
-for _, wepName in pairs(hammerWeaponNames) do
-	hammerWeapons[wepName] = true
-end
-
-local hammerOverrides = {}
-local function hookOwnerChanged(self)
-	local super = hammerOverrides[self]
-
-	self.SecondaryAttack = super.SecondaryAttack
-	self.OwnerChanged = super.OwnerChanged
-	self.Reload = super.Reload
-
-	hammerOverrides[self] = nil
-
-	if self.OwnerChanged then
-		self:OwnerChanged()
-	end
-end
-
-local function bannedAction(self)
-	if CurTime() < self:GetNextSecondaryFire() then return end
-
-	local plr = self:GetOwner()
-	if plr:GetBarricadeGhosting() then return end
-
-	self:SetNextSecondaryFire(CurTime() + 1)
-
-	plr:PrintMessage(HUD_PRINTCENTER, "You are banned from cading!")
-end
-
-local function setHammerBlocked(wep, blocked)
-	local super = hammerOverrides[wep]
-
-	if blocked then
-		if super then return end
-
-		super = {}
-
-		super.SecondaryAttack = wep.SecondaryAttack
-		super.OwnerChanged = wep.OwnerChanged
-		super.Reload = wep.Reload
-
-		wep.SecondaryAttack = bannedAction
-		wep.Reload = bannedAction
-
-		wep.OwnerChanged = hookOwnerChanged
-
-		hammerOverrides[wep] = super
-	else
-		if not super then return end
-
-		wep.SecondaryAttack = super.SecondaryAttack
-		wep.OwnerChanged = super.OwnerChanged
-		wep.Reload = super.Reload
-
-		hammerOverrides[wep] = nil
-	end
-end
-
-local function hookWeaponEquip(wep, plr)
-	if not convarHammerBan:GetBool() then return end
-
-	if markedPlayers[plr] and hammerWeapons[wep:GetClass()] then
-		timer.Simple(0, function()
-			setHammerBlocked(wep, true)
-		end)
-	end
-end
-
-hook.Add("WeaponEquip", "ramen", hookWeaponEquip)
-
-
 local function setPlayerMarked(plr, marked)
 	marked = marked and true or nil
 
@@ -179,14 +101,6 @@ local function setPlayerMarked(plr, marked)
 
 		if plr.DoMuscularBones and not marked then
 			plr:DoMuscularBones()
-		end
-	end
-
-	if convarHammerBan:GetBool() or not marked then
-		for wepName in pairs(hammerWeapons) do
-			local wep = plr:GetWeapon(wepName)
-
-			setHammerBlocked(wep, marked)
 		end
 	end
 
@@ -234,6 +148,14 @@ end
 
 local function hookPlayerShouldTakeNailRemovalPenalty(plr, nail, nailOwner, prop)
 	if markedPlayers[nailOwner] and convarNoNailRemovalPenaltyIfNoodled:GetBool() then
+		return false
+	end
+end
+
+local function hookCanPlaceRemoveNail(plr)
+	if convarHammerBan:GetBool() and markedPlayers[plr] then
+		plr:GetActiveWeapon():SetNextSecondaryFire(CurTime() + .5)
+		plr:PrintMessage(HUD_PRINTCENTER, "You are banned from cading!")
 		return false
 	end
 end
@@ -286,6 +208,9 @@ local function hookShutDown()
 end
 
 hook.Add("PlayerShouldTakeNailRemovalPenalty", "ramen", hookPlayerShouldTakeNailRemovalPenalty)
+hook.Add("CanRemoveNail", "ramen", hookCanPlaceRemoveNail)
+hook.Add("CanPlaceNail", "ramen", hookCanPlaceRemoveNail)
+
 hook.Add("PlayerDisconnected", "ramen", hookPlayerDisconnected)
 hook.Add("PlayerAuthed", "ramen", hookPlayerAuthed)
 hook.Add("PlayerSpawn", "ramen", hookPlayerSpawn)
