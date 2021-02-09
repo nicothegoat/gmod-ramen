@@ -1,10 +1,8 @@
 local convarHammerBan = CreateConVar("sv_ramen_hammer_ban", "1", FCVAR_ARCHIVE,
 	"Prevent noodled players from placing or removing nails?")
 
-local convarNoNailRemovalPenaltyIfNoodled = CreateConVar("sv_ramen_allow_remove_noodled_nails", "1", FCVAR_ARCHIVE,
-	"Should players not be penalized for removing nails placed by a noodled player?\n" ..
-	"This doesn't give the removed nail to the player.\n" ..
-	"Note: this option depends on a hook that doesn't exist on older versions of ZS. This option won't do anything if that hook doesn't exist.")
+local convarOverrideNailOwner = CreateConVar("sv_ramen_allow_remove_noodled_nails", "1", FCVAR_ARCHIVE,
+	"Should players not be penalised for removing nails placed by a noodled player?")
 
 util.AddNetworkString("ramenMarkedAddRemove")
 util.AddNetworkString("ramenMarkedSendFull")
@@ -146,10 +144,31 @@ local function setPlayerNoodled(plr, noodled)
 end
 
 
-local function hookPlayerShouldTakeNailRemovalPenalty(plr, nail, nailOwner, prop)
-	if markedPlayers[nailOwner] and convarNoNailRemovalPenaltyIfNoodled:GetBool() then
-		return false
+-- i have to do all of this because it won't let me overwrite GetOwner directly
+local entMeta = FindMetaTable("Entity")
+local entIndex = entMeta.__index
+local entGetOwner = entMeta.__index(nil, "GetOwner")
+
+local function nailGetOwner(self)
+	local owner = entGetOwner(self)
+	if convarOverrideNailOwner:GetBool() and markedPlayers[owner] then
+		return NULL
+	else
+		return owner
 	end
+end
+
+local nailMeta = table.Copy(entMeta)
+function nailMeta:__index(key)
+	if key == "GetOwner" then
+		return nailGetOwner
+	else
+		return entIndex(self, key)
+	end
+end
+
+local function hookOnNailCreated(_, _, nail)
+	debug.setmetatable(nail, nailMeta)
 end
 
 local function hookCanPlaceRemoveNail(plr)
@@ -207,7 +226,7 @@ local function hookShutDown()
 	file.Write("ramen_noodled_players.txt", serialized)
 end
 
-hook.Add("PlayerShouldTakeNailRemovalPenalty", "ramen", hookPlayerShouldTakeNailRemovalPenalty)
+hook.Add("OnNailCreated", "ramen", hookOnNailCreated)
 hook.Add("CanRemoveNail", "ramen", hookCanPlaceRemoveNail)
 hook.Add("CanPlaceNail", "ramen", hookCanPlaceRemoveNail)
 

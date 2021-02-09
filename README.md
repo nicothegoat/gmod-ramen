@@ -28,8 +28,6 @@ All commands are located under "ZS ULX Commands" in the ULX menu.
 
 - `sv_ramen_allow_remove_noodled_nails <BOOL>`, default `1`  
 	Should players not be penalized for removing nails placed by a noodled player?  
-	This doesn't give the removed nail to the player.  
-	*Note*: this option depends on a hook that doesn't exist on older versions of ZS. This option won't do anything if that hook doesn't exist.
 
 - `ulx_votenoodleminvotes <NUMBER>`, default `3`  
 	Amount of votes required for a `votenoodle` to succeed.
