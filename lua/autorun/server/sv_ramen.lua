@@ -12,7 +12,6 @@ local convarNoNailRemovalPenaltyIfNoodled = CreateConVar("sv_ramen_allow_remove_
 
 util.AddNetworkString("ramenMarkedAddRemove")
 util.AddNetworkString("ramenMarkedSendFull")
-util.AddNetworkString("ramenBannedAction")
 
 local function serialize(tbl)
 	local resultConcat = {}
@@ -105,9 +104,6 @@ local function bannedAction(self)
 	self:SetNextSecondaryFire(CurTime() + 1)
 
 	plr:PrintMessage(HUD_PRINTCENTER, "You are banned from cading!")
-
-	net.Start("ramenBannedAction")
-	net.Send(plr)
 end
 
 local function setHammerBlocked(wep, blocked)
